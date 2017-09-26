@@ -25,7 +25,63 @@ namespace GetMail
             }
             catch(Exception e)
             {
-                //Console.WriteLine(e.ToString());
+                Console.WriteLine(e.ToString());
+            }
+        }
+        public static void SendMail(string email, string from, string subj, string message, string attach,  string smtpIP)
+        {
+            try
+            {
+                SmtpClient Smtp = new SmtpClient(smtpIP, 25);
+                MailMessage Message = new MailMessage();
+                Message.From = new MailAddress(from);
+                Message.To.Add(new MailAddress(email));
+                Message.Attachments.Add(new Attachment(attach));
+                Message.Subject = subj;
+                Message.Body = message;
+                Smtp.Send(Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        public static void SendMail(string email, string from, string subj, string message, string attach, string user, string password, string smtpIP)
+        {
+            try
+            {
+                SmtpClient Smtp = new SmtpClient(smtpIP, 25);
+                Smtp.Credentials = new NetworkCredential(user, password);
+                MailMessage Message = new MailMessage();
+                Message.From = new MailAddress(from);
+                Message.To.Add(new MailAddress(email));
+                Message.Attachments.Add(new Attachment(attach));
+                Message.Subject = subj;
+                Message.Body = message;
+                Smtp.Send(Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+        public static void SendMail(string email, string from, string subj, string message, string user, string password, string smtpIP)
+        {
+            try
+            {
+                SmtpClient Smtp = new SmtpClient(smtpIP, 25);
+                Smtp.Credentials = new NetworkCredential(user, password);
+                MailMessage Message = new MailMessage();
+                Message.From = new MailAddress(from);
+                Message.To.Add(new MailAddress(email));
+                Message.Subject = subj;
+                Message.Body = message;
+                Smtp.Send(Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
             }
         }
 

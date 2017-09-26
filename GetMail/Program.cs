@@ -2,6 +2,7 @@
 using OpenPop.Pop3;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 
 namespace GetMail
@@ -15,6 +16,7 @@ namespace GetMail
             public string ctlmsg;
         }
         static Queue<CtlMsg> QueueCommand = new Queue<CtlMsg>();
+        static public string LocalIp = "";
 
         public static void FetchAllMessages(string hostname, int port, bool useSsl, string username, string password)
         {
@@ -35,20 +37,16 @@ namespace GetMail
                 for (int i = 1; i < messageCount + 1; i++)
                 {
                     allMessages.Add(client.GetMessage(i));
-                    //try
+                    CtlMsg tmp = new CtlMsg();
                     {
-                        //if (client.GetMessage(i).Headers.From.Address.Contains(".mrsks.ru"))
                         {
-                            Console.WriteLine("Принято письмо от: " + client.GetMessageHeaders(i).From);
-                            Console.WriteLine("--------------------------------------------------------------");
-                            Console.WriteLine((client.GetMessage(i).FindFirstPlainTextVersion() == null) ? "null" : client.GetMessage(i).FindFirstPlainTextVersion().GetBodyAsText());
-
-                            CtlMsg tmp = new CtlMsg();
                             tmp.from = client.GetMessageHeaders(i).From.Address;
                             tmp.ctlmsg = (client.GetMessage(i).FindFirstPlainTextVersion() == null) ? "null" : client.GetMessage(i).FindFirstPlainTextVersion().GetBodyAsText();
                             QueueCommand.Enqueue(tmp);
                         }
-                        client.DeleteMessage(i);
+                        foreach (IPAddress ipaddress in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+                            if (tmp.ctlmsg.Contains(ipaddress.ToString()))
+                                client.DeleteMessage(i);
                     }
                      //catch { }
                     }
@@ -59,11 +57,23 @@ namespace GetMail
         }
         static void Main(string[] args)
         {
-            while (true)
+            
+            foreach (IPAddress ipaddress in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+                LocalIp += ipaddress.ToString();
+
+            new Thread(()=> 
             {
-                FetchAllMessages("172.30.1.47", 110, false, "telemex", "teletele");
-                Thread.Sleep(2000);
+                while (true)
+                {
+                    FetchAllMessages("172.30.1.47", 110, false, "telemex", "teletele");
+                    Thread.Sleep(2000);
+                }
             }
+            ).Start();
+
+            Worker work = new Worker();
+            Thread Main = new Thread(() => { work.QueueThread(ref QueueCommand); });
+            Main.Start();
         }
     }
 }
