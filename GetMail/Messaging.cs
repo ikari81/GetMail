@@ -5,6 +5,8 @@ using System.Text;
 using System.Net.Mail;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
+using System.Net.Mime;
 
 namespace GetMail
 {
@@ -57,6 +59,26 @@ namespace GetMail
                 Message.From = new MailAddress(from);
                 Message.To.Add(new MailAddress(email));
                 Message.Attachments.Add(new Attachment(attach));
+                Message.Subject = subj;
+                Message.Body = message;
+                Smtp.Send(Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        public static void SendMail(string email, string from, string subj, string message, ref MemoryStream JpegAttach, string user, string password, string smtpIP)
+        {
+            try
+            {
+                SmtpClient Smtp = new SmtpClient(smtpIP, 25);
+                Smtp.Credentials = new NetworkCredential(user, password);
+                MailMessage Message = new MailMessage();
+                Message.From = new MailAddress(from);
+                Message.To.Add(new MailAddress(email));
+                Message.Attachments.Add(new Attachment(JpegAttach, MediaTypeNames.Image.Jpeg));
                 Message.Subject = subj;
                 Message.Body = message;
                 Smtp.Send(Message);
